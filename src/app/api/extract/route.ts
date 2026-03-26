@@ -52,10 +52,11 @@ export async function POST(req: NextRequest) {
 
     const nextData = JSON.parse(match[1]);
     const pageProps = nextData?.props?.pageProps ?? {};
-    const data =
-      pageProps.form ?? pageProps.formData ?? pageProps.formDefinition ?? null;
 
-    if (!data?.flowSnapshot?.template) {
+    // The template lives directly at pageProps.flowSnapshot.template
+    const template = pageProps.flowSnapshot?.template ?? null;
+
+    if (!template) {
       return NextResponse.json(
         {
           error:
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ template: data.flowSnapshot.template });
+    return NextResponse.json({ template });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
