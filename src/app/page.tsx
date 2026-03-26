@@ -4,13 +4,14 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { FormReviewer, FeedbackItem } from "@/lib/form-reviewer";
 
 const severityColors: Record<string, { border: string; badge: string; badgeText: string }> = {
-  critical: { border: "border-red-500", badge: "bg-red-500", badgeText: "text-white" },
-  warning: { border: "border-yellow-500", badge: "bg-yellow-500", badgeText: "text-gray-900" },
-  info: { border: "border-blue-500", badge: "bg-blue-500", badgeText: "text-white" },
+  required: { border: "border-red-500", badge: "bg-red-500", badgeText: "text-white" },
+  recommended: { border: "border-yellow-500", badge: "bg-yellow-500", badgeText: "text-gray-900" },
+  consider: { border: "border-blue-500", badge: "bg-blue-500", badgeText: "text-white" },
 };
 
 export default function Home() {
   const [url, setUrl] = useState("");
+  const [formName, setFormName] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<FeedbackItem[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +23,7 @@ export default function Home() {
   // Clear analysis when URL changes
   const handleUrlChange = useCallback((value: string) => {
     setUrl(value);
+    setFormName(null);
     setFeedback(null);
     setError(null);
     setSubmitted(false);
@@ -49,6 +51,7 @@ export default function Home() {
         return;
       }
 
+      setFormName(data.formName || null);
       const results = reviewerRef.current.review(data);
       setFeedback(results);
     } catch {
@@ -110,9 +113,9 @@ export default function Home() {
     }
   }, [feedback]);
 
-  const critical = feedback?.filter((f) => f.severity === "critical") ?? [];
-  const warnings = feedback?.filter((f) => f.severity === "warning") ?? [];
-  const info = feedback?.filter((f) => f.severity === "info") ?? [];
+  const critical = feedback?.filter((f) => f.severity === "required") ?? [];
+  const warnings = feedback?.filter((f) => f.severity === "recommended") ?? [];
+  const info = feedback?.filter((f) => f.severity === "consider") ?? [];
 
   // Group by title, sorted by severity
   const grouped = feedback
@@ -122,7 +125,7 @@ export default function Home() {
           return acc;
         }, {})
       ).sort((a, b) => {
-        const order = { critical: 0, warning: 1, info: 2 };
+        const order: Record<string, number> = { required: 0, recommended: 1, consider: 2 };
         return order[a[1][0].severity] - order[b[1][0].severity];
       })
     : [];
@@ -166,13 +169,27 @@ export default function Home() {
 
         {feedback && (
           <section ref={resultsRef} className="bg-white rounded shadow-sm p-6">
-            <h2 className="text-xl font-bold mb-4">Your review</h2>
+            <div className="mb-4">
+              <h2 className="text-xl font-bold">Your review</h2>
+              {formName && (
+                <p className="text-sm text-gray-600 mt-1">
+                  <a 
+                    href={url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="hover:text-blue-600 hover:underline"
+                  >
+                    {formName}
+                  </a>
+                </p>
+              )}
+            </div>
 
             {/* Summary */}
             <div className="bg-gray-50 rounded p-4 mb-6">
               <p className="text-lg font-semibold mb-3">
                 {critical.length > 0
-                  ? "This form has critical issues that must be fixed before publishing."
+                  ? "This form has required fixes that must be addressed before publishing."
                   : warnings.length > 5
                     ? "This form needs several improvements to meet sf.gov standards."
                     : warnings.length > 0
@@ -187,13 +204,13 @@ export default function Home() {
                   passed
                 </div>
                 <div>
-                  <span className="text-2xl font-bold text-red-500">{critical.length}</span> critical
+                  <span className="text-2xl font-bold text-red-500">{critical.length}</span> required
                 </div>
                 <div>
-                  <span className="text-2xl font-bold text-yellow-500">{warnings.length}</span> warnings
+                  <span className="text-2xl font-bold text-yellow-500">{warnings.length}</span> recommended
                 </div>
                 <div>
-                  <span className="text-2xl font-bold text-blue-500">{info.length}</span> suggestions
+                  <span className="text-2xl font-bold text-blue-500">{info.length}</span> consider
                 </div>
               </div>
             </div>
