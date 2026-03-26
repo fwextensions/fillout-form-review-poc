@@ -55,6 +55,14 @@ export default function Home() {
     }
   }, [url]);
 
+  const handleRate = useCallback((id: number, helpful: boolean) => {
+    setFeedback((prev) =>
+      prev?.map((item) =>
+        item.id === id ? { ...item, helpful: item.helpful === helpful ? null : helpful } : item
+      ) ?? null
+    );
+  }, []);
+
   useEffect(() => {
     if (feedback && resultsRef.current) {
       resultsRef.current.scrollIntoView({ behavior: "smooth" });
@@ -152,7 +160,7 @@ export default function Home() {
             {/* Grouped feedback */}
             <div className="space-y-4">
               {grouped.map(([title, items]) => (
-                <FeedbackGroup key={title} title={title} items={items} />
+                <FeedbackGroup key={title} title={title} items={items} onRate={handleRate} />
               ))}
             </div>
           </section>
@@ -162,7 +170,15 @@ export default function Home() {
   );
 }
 
-function FeedbackGroup({ title, items }: { title: string; items: FeedbackItem[] }) {
+function FeedbackGroup({
+  title,
+  items,
+  onRate,
+}: {
+  title: string;
+  items: FeedbackItem[];
+  onRate: (id: number, helpful: boolean) => void;
+}) {
   const [collapsed, setCollapsed] = useState(items.length > 5);
   const severity = items[0].severity;
   const colors = severityColors[severity];
@@ -191,11 +207,48 @@ function FeedbackGroup({ title, items }: { title: string; items: FeedbackItem[] 
       {!collapsed && (
         <div className="space-y-2">
           {items.map((item) => (
-            <div key={item.id} className="bg-white rounded p-3 text-sm text-gray-600">
-              {item.message}
-              {item.location && (
-                <span className="block text-xs text-gray-400 mt-1">Location: {item.location}</span>
-              )}
+            <div
+              key={item.id}
+              className={`flex items-start justify-between gap-3 rounded p-3 text-sm transition-colors ${
+                item.helpful === true
+                  ? "bg-green-50 border border-green-300"
+                  : item.helpful === false
+                    ? "bg-white border border-gray-200"
+                    : "bg-white"
+              }`}
+            >
+              <div className="flex-1 text-gray-600">
+                {item.message}
+                {item.location && (
+                  <span className="block text-xs text-gray-400 mt-1">
+                    Location: {item.location}
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-1 shrink-0">
+                <button
+                  onClick={() => onRate(item.id, true)}
+                  aria-label="Mark as helpful"
+                  className={`w-8 h-8 flex items-center justify-center rounded border text-sm transition-colors ${
+                    item.helpful === true
+                      ? "bg-green-600 border-green-600 text-white"
+                      : "bg-white border-gray-300 text-gray-400 hover:border-green-400 hover:text-green-600"
+                  }`}
+                >
+                  ✓
+                </button>
+                <button
+                  onClick={() => onRate(item.id, false)}
+                  aria-label="Mark as not helpful"
+                  className={`w-8 h-8 flex items-center justify-center rounded border text-sm transition-colors ${
+                    item.helpful === false
+                      ? "bg-gray-500 border-gray-500 text-white"
+                      : "bg-white border-gray-300 text-gray-400 hover:border-gray-500 hover:text-gray-600"
+                  }`}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           ))}
         </div>

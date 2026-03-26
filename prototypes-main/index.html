@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fillout Form Review Tool</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Form review tool</h1>
+            <p>Paste your Fillout form JSON to get feedback based on SF.gov standards</p>
+        </header>
+
+        <main>
+            <section class="input-section">
+                <label for="formJson">Fillout form JSON</label>
+                <textarea id="formJson" placeholder='Paste your form JSON here...'></textarea>
+                <button id="reviewBtn" class="primary-btn">Review form</button>
+            </section>
+
+            <section id="resultsSection" class="results-section hidden">
+                <h2>Your review</h2>
+                <div id="summary" class="summary"></div>
+                <div id="feedback" class="feedback-list"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
