@@ -14,6 +14,8 @@ export default function Home() {
   const [feedback, setFeedback] = useState<FeedbackItem[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const reviewerRef = useRef(new FormReviewer());
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -22,6 +24,7 @@ export default function Home() {
     setUrl(value);
     setFeedback(null);
     setError(null);
+    setSubmitted(false);
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -62,6 +65,44 @@ export default function Home() {
       ) ?? null
     );
   }, []);
+
+  const handleSubmitFeedback = useCallback(async () => {
+    if (!feedback || submitted) return;
+    setSubmitting(true);
+
+    // Extract form ID from URL (last path segment of fillout URLs)
+    const formId = url.split("/").filter(Boolean).pop() || "";
+
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          formUrl: url.trim(),
+          formId,
+          items: feedback.map((item) => ({
+            title: item.title,
+            severity: item.severity,
+            message: item.message,
+            location: item.location,
+            category: item.category,
+            helpful: item.helpful,
+          })),
+        }),
+      });
+
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Failed to submit feedback.");
+      }
+    } catch {
+      setError("Failed to connect to the server.");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [feedback, url, submitted]);
 
   useEffect(() => {
     if (feedback && resultsRef.current) {
@@ -162,6 +203,28 @@ export default function Home() {
               {grouped.map(([title, items]) => (
                 <FeedbackGroup key={title} title={title} items={items} onRate={handleRate} />
               ))}
+            </div>
+
+            {/* Submit feedback */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              {submitted ? (
+                <p className="text-sm text-green-700">
+                  Thanks for your feedback — it&apos;s been recorded.
+                </p>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={handleSubmitFeedback}
+                    disabled={submitting}
+                    className="bg-gray-900 text-white px-5 py-2 rounded text-sm font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {submitting ? "Submitting…" : "Submit feedback"}
+                  </button>
+                  <span className="text-xs text-gray-400">
+                    Sends all review items and your ratings to help us improve the tool.
+                  </span>
+                </div>
+              )}
             </div>
           </section>
         )}
