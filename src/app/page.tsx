@@ -117,17 +117,35 @@ export default function Home() {
   const warnings = feedback?.filter((f) => f.severity === "recommended") ?? [];
   const info = feedback?.filter((f) => f.severity === "consider") ?? [];
 
-  // Group by title, sorted by severity
-  const grouped = feedback
-    ? Object.entries(
-        feedback.reduce<Record<string, FeedbackItem[]>>((acc, item) => {
-          (acc[item.title] ??= []).push(item);
-          return acc;
-        }, {})
-      ).sort((a, b) => {
-        const order: Record<string, number> = { required: 0, recommended: 1, consider: 2 };
-        return order[a[1][0].severity] - order[b[1][0].severity];
-      })
+  const categoryOrder = [
+    "Theme & Visual Design",
+    "Page Structure",
+    "Headings & Typography",
+    "Labels & Language",
+    "Question Design",
+    "Input Types",
+    "Help Text & Errors",
+  ];
+
+  const severityOrder: Record<string, number> = { required: 0, recommended: 1, consider: 2 };
+
+  // Group by category, then by title within each category, sorted by severity
+  const groupedByCategory = feedback
+    ? categoryOrder
+        .map((category) => {
+          const items = feedback.filter((f) => f.category === category);
+          if (items.length === 0) return null;
+
+          const titleGroups = Object.entries(
+            items.reduce<Record<string, FeedbackItem[]>>((acc, item) => {
+              (acc[item.title] ??= []).push(item);
+              return acc;
+            }, {})
+          ).sort((a, b) => severityOrder[a[1][0].severity] - severityOrder[b[1][0].severity]);
+
+          return { category, titleGroups };
+        })
+        .filter(Boolean) as { category: string; titleGroups: [string, FeedbackItem[]][] }[]
     : [];
 
   return (
@@ -215,10 +233,17 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Grouped feedback */}
-            <div className="space-y-4">
-              {grouped.map(([title, items]) => (
-                <FeedbackGroup key={title} title={title} items={items} onRate={handleRate} />
+            {/* Grouped feedback by category */}
+            <div className="space-y-6">
+              {groupedByCategory.map(({ category, titleGroups }) => (
+                <div key={category}>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{category}</h3>
+                  <div className="space-y-4">
+                    {titleGroups.map(([title, items]) => (
+                      <FeedbackGroup key={title} title={title} items={items} onRate={handleRate} />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
 

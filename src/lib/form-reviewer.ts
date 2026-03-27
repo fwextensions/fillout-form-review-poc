@@ -162,8 +162,10 @@ export class FormReviewer {
     }
 
     if (formSteps.length > 1) {
-      const firstStep: any = formSteps[0];
-      const firstStepWidgets = Object.values(firstStep.template?.widgets || {}) as any[];
+      // Use the template's firstStep to find the actual first page
+      const firstStepId = form.template?.firstStep;
+      const firstStep: any = firstStepId ? this.steps[firstStepId] : formSteps[0];
+      const firstStepWidgets = Object.values(firstStep?.template?.widgets || {}) as any[];
       const hasIntroText = firstStepWidgets.some(
         (w) => (w.type === "Paragraph" || w.type === "Text") && this.getLabel(w).length > 100
       );
@@ -343,7 +345,15 @@ export class FormReviewer {
       });
 
       if (problematicAcronyms.length > 0) {
-        this.addFeedback("recommended", "Unexplained acronym", `"${cleanLabel}" uses "${problematicAcronyms.join(", ")}". Write out the full term on first use, then use the acronym.`, `${widget.stepName} - ${widget.type}`, "Labels & Language");
+        // Filter out acronyms that are being explained in the same label, e.g. "Department of Police Accountability (DPA)"
+        const unexplainedAcronyms = problematicAcronyms.filter((acronym) => {
+          const pattern = new RegExp(`\\(${acronym}\\)`, "i");
+          return !pattern.test(cleanLabel);
+        });
+
+        if (unexplainedAcronyms.length > 0) {
+          this.addFeedback("recommended", "Unexplained acronym", `"${cleanLabel}" uses "${unexplainedAcronyms.join(", ")}". Write out the full term on first use, then use the acronym.`, `${widget.stepName} - ${widget.type}`, "Labels & Language");
+        }
       }
 
       const wordCount = cleanLabel.split(/\s+/).length;
