@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
 
     // The template lives directly at pageProps.flowSnapshot.template
     const template = pageProps.flowSnapshot?.template ?? null;
+    const formName = pageProps.flow?.name || pageProps.flowSnapshot?.name || "Untitled Form";
 
     if (!template) {
       return NextResponse.json(
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ template });
+    return NextResponse.json({ template, formName });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
