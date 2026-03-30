@@ -237,7 +237,7 @@ export default function Home() {
             <div className="space-y-6">
               {groupedByCategory.map(({ category, titleGroups }) => (
                 <div key={category}>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{category}</h3>
+                  <h3 className="text-sm font-semibold text-gray-500 tracking-wide mb-3">{category}</h3>
                   <div className="space-y-4">
                     {titleGroups.map(([title, items]) => (
                       <FeedbackGroup key={title} title={title} items={items} onRate={handleRate} />
