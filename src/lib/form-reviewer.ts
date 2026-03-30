@@ -74,6 +74,75 @@ export class FormReviewer {
     return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
   }
 
+  private static readonly COMMON_WORDS = new Set([
+    "about", "above", "accept", "account", "action", "activity", "actually", "add",
+    "address", "after", "again", "against", "age", "agency", "agree", "agreement",
+    "ahead", "allow", "almost", "along", "already", "also", "always", "amount",
+    "and", "annual", "another", "answer", "any", "anyone", "anything", "apply",
+    "application", "appointment", "area", "around", "ask", "assistance", "available",
+    "back", "based", "because", "become", "been", "before", "begin", "below",
+    "benefit", "benefits", "best", "between", "birth", "both", "building", "business",
+    "call", "came", "case", "center", "change", "check", "child", "children", "choice",
+    "choose", "city", "claim", "clear", "close", "code", "come", "comment", "community",
+    "company", "complete", "condition", "confirm", "confirmation", "connect", "contact",
+    "continue", "control", "copy", "cost", "could", "country", "county", "course",
+    "court", "create", "current", "customer", "daily", "data", "date", "days",
+    "deadline", "decision", "department", "describe", "description", "detail", "details",
+    "different", "digital", "direct", "disability", "document", "documents", "does",
+    "done", "down", "during", "each", "education", "either", "eligibility", "eligible",
+    "email", "emergency", "employee", "employment", "end", "english", "enough", "enter",
+    "entry", "error", "even", "event", "events", "every", "everyone", "everything",
+    "example", "experience", "explain", "family", "federal", "feedback", "field",
+    "file", "fill", "final", "financial", "find", "first", "follow", "following",
+    "food", "form", "format", "found", "free", "from", "full", "fund", "funding",
+    "general", "give", "given", "good", "government", "grant", "great", "group",
+    "guide", "half", "hand", "happen", "have", "health", "hear", "help", "here",
+    "high", "history", "hold", "home", "hospital", "hour", "hours", "house",
+    "household", "housing", "however", "human", "important", "include", "income",
+    "individual", "information", "initial", "input", "insurance", "interest",
+    "into", "issue", "item", "items", "just", "keep", "kind", "know", "language",
+    "last", "late", "later", "least", "leave", "legal", "less", "letter", "level",
+    "license", "life", "like", "line", "list", "live", "living", "local", "location",
+    "long", "look", "made", "mail", "main", "major", "make", "many", "material",
+    "materials", "matter", "medical", "meet", "meeting", "member", "message",
+    "method", "middle", "might", "military", "minor", "minute", "missing", "money",
+    "month", "monthly", "more", "most", "move", "much", "must", "name", "national",
+    "nature", "near", "need", "never", "new", "next", "none", "note", "notice",
+    "number", "office", "official", "often", "once", "only", "open", "option",
+    "options", "order", "organization", "original", "other", "otherwise", "over",
+    "overview", "owner", "page", "paid", "part", "participant", "particular",
+    "party", "past", "payment", "people", "percent", "period", "permit", "person",
+    "personal", "phone", "place", "plan", "please", "point", "policy", "position",
+    "possible", "post", "power", "present", "previous", "primary", "print", "prior",
+    "private", "problem", "process", "program", "project", "property", "provide",
+    "provider", "public", "purpose", "question", "questions", "race", "rate", "read",
+    "reason", "receive", "record", "reference", "regarding", "register", "registration",
+    "related", "release", "remaining", "remove", "renewal", "rent", "report",
+    "request", "require", "required", "requirement", "resident", "resource",
+    "resources", "response", "result", "return", "review", "right", "role", "room",
+    "rule", "safe", "safety", "same", "save", "schedule", "school", "search",
+    "section", "security", "select", "send", "senior", "service", "services",
+    "session", "several", "shall", "share", "short", "should", "show", "sign",
+    "signature", "similar", "simple", "since", "single", "site", "situation", "size",
+    "small", "social", "some", "someone", "something", "source", "space", "special",
+    "specific", "staff", "standard", "start", "state", "statement", "status", "stay",
+    "step", "still", "stop", "street", "student", "subject", "submit", "such",
+    "summary", "support", "sure", "system", "take", "team", "tell", "term", "test",
+    "text", "than", "thank", "that", "their", "them", "then", "there", "these",
+    "they", "thing", "think", "this", "those", "through", "time", "title", "today",
+    "together", "total", "training", "transfer", "travel", "true", "turn", "type",
+    "under", "understand", "unit", "until", "update", "upon", "upload", "used",
+    "user", "using", "valid", "value", "verify", "very", "view", "visit", "wage",
+    "wait", "want", "water", "week", "weekly", "welcome", "well", "were", "what",
+    "when", "where", "which", "while", "will", "with", "within", "without", "word",
+    "work", "worker", "would", "write", "written", "year", "years", "your", "youth",
+    "zone",
+  ]);
+
+  private isCommonWord(word: string): boolean {
+    return FormReviewer.COMMON_WORDS.has(word.toLowerCase());
+  }
+
   private addFeedback(
     severity: FeedbackItem["severity"],
     title: string,
@@ -268,7 +337,7 @@ export class FormReviewer {
           word.length > 3 &&
           word === word.toUpperCase() &&
           /^[A-Z]+$/.test(word) &&
-          !["PDF", "ID", "URL", "API", "DOB", "SSN", "MOHCD", "CHIPPS"].includes(word)
+          this.isCommonWord(word)
       );
 
       if (allCapsWords.length > 0) {
@@ -475,7 +544,7 @@ export class FormReviewer {
       const errorMessage = widget.template?.validationErrorMessage?.logic?.value || "";
 
       if (isRequired && (!errorMessage || errorMessage === "This field is required")) {
-        this.addFeedback("consider", "Generic error message", `"${cleanLabel}" uses generic error message. Write specific message like: "${cleanLabel} is required"`, `${widget.stepName} - ${widget.type}`, "Help Text & Errors");
+        this.addFeedback("consider", "Generic error message", `"${cleanLabel}" uses generic error message. Write a specific message like: "${cleanLabel} is required"`, `${widget.stepName} - ${widget.type}`, "Help Text & Errors");
       }
 
       if (widget.template?.validationPattern && widget.template.validationPattern !== "none") {
