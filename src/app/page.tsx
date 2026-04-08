@@ -193,15 +193,16 @@ export default function Home() {
         </header>
 
         <section className="bg-white rounded shadow-sm p-6 mb-6">
-          <label htmlFor="formUrl" className="block font-semibold mb-2">
+          <label htmlFor="formUrl" className="block font-semibold mb-1">
             Fillout form URL
           </label>
+          <p className="text-sm text-gray-500 mb-2">e.g. https://digital.forms.sf.gov/t/...</p>
           <div className="flex gap-3">
             <input
               id="formUrl"
               type="url"
               className="flex-1 border-2 border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-              placeholder="https://digital.forms.sf.gov/t/..."
+              placeholder=""
               value={url}
               onChange={(e) => handleUrlChange(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
