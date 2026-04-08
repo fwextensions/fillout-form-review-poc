@@ -166,7 +166,7 @@ export class FormReviewer {
     if (theme && theme.name && !theme.name.includes("SF.gov")) {
       this.addFeedback(
         "required",
-        "Not using sf.gov theme",
+        "Switch to sf.gov theme",
         `Form uses "${theme.name}" theme. Switch to "SF.gov Theme (Use me!)" in form settings.`,
         null,
         "Theme & Visual Design"
@@ -186,7 +186,7 @@ export class FormReviewer {
         if (cleanLabel.length > 0) {
           this.addFeedback(
             "recommended",
-            "Bold question text",
+            "Remove bold from question text",
             `"${cleanLabel}" uses bold formatting. Remove bold to match sf.gov theme.`,
             `${widget.stepName} - ${widget.type}`,
             "Theme & Visual Design"
@@ -201,7 +201,7 @@ export class FormReviewer {
           if (!(Number(r) < 50 && Number(g) < 50 && Number(b) < 50)) {
             this.addFeedback(
               "required",
-              "Custom font color",
+              "Remove custom font color",
               `"${cleanLabel}" uses custom color (rgb(${r}, ${g}, ${b})). Use default text colors from sf.gov theme.`,
               `${widget.stepName} - ${widget.type}`,
               "Theme & Visual Design"
@@ -223,7 +223,7 @@ export class FormReviewer {
     if (inputWidgets.length > 15 && formSteps.length <= 1) {
       this.addFeedback(
         "recommended",
-        "Long form without pages",
+        "Break long form into pages",
         `Form has ${inputWidgets.length} input fields on a single page. Break into multiple pages (10-15 questions each) to reduce cognitive load and improve completion rates.`,
         null,
         "Page Structure"
@@ -253,7 +253,7 @@ export class FormReviewer {
         if (!step.name || step.name.includes("Untitled") || step.name === "Page" || /^Page \d+$/.test(step.name)) {
           this.addFeedback(
             "consider",
-            "Generic page name",
+            "Rename generic page",
             `Page ${index + 1} has generic name "${step.name}". Use descriptive names like "About you", "Contact information", "Income and household".`,
             step.name,
             "Page Structure"
@@ -269,7 +269,7 @@ export class FormReviewer {
       if (!hasReviewPage) {
         this.addFeedback(
           "recommended",
-          "Missing review page",
+          "Add review page",
           `Multi-page form should include a review page before submission so users can verify their answers.`,
           null,
           "Page Structure"
@@ -290,7 +290,7 @@ export class FormReviewer {
         if (subtitleText.includes("Made with Fillout")) {
           this.addFeedback(
             "required",
-            "Default confirmation message",
+            "Replace default confirmation message",
             `Confirmation page uses default Fillout message. Replace with: (1) What happens next, (2) When to expect a response, (3) Who to contact with questions.`,
             endingStep.name,
             "Page Structure"
@@ -298,7 +298,7 @@ export class FormReviewer {
         } else if (subtitleText.length < 30) {
           this.addFeedback(
             "required",
-            "Incomplete confirmation page",
+            "Add more details to the confirmation page",
             `Confirmation page message is very brief. Include: (1) What happens next, (2) Timeline for response, (3) Contact information for questions.`,
             endingStep.name,
             "Page Structure"
@@ -346,7 +346,7 @@ export class FormReviewer {
           .join(", ");
         this.addFeedback(
         "required",
-        "All caps text",
+        "Replace all caps text with sentence case",
           `"${cleanLabel}" uses all caps (${allCapsWords.join(", ")}). Use sentence case: "${sentenceCaseVersion}".`,
           `${widget.stepName} - ${widget.type}`,
           "Headings & Typography"
@@ -368,13 +368,13 @@ export class FormReviewer {
 
     Object.entries(headingsByStep).forEach(([stepName, h]) => {
       if (h.h1Count > 1)
-        this.addFeedback("recommended", "Multiple h1 headings", `Page "${stepName}" has ${h.h1Count} h1 headings. Use only one h1 per page.`, stepName, "Headings & Typography");
+        this.addFeedback("recommended", "Remove extra h1 headings", `Page "${stepName}" has ${h.h1Count} h1 headings. Use only one h1 per page.`, stepName, "Headings & Typography");
       if (!h.hasH1 && (h.hasH2 || h.hasH3 || h.hasH4))
-        this.addFeedback("recommended", "Missing h1 heading", `Page "${stepName}" has subheadings but no h1. Add an h1 as the main page heading.`, stepName, "Headings & Typography");
+        this.addFeedback("recommended", "Add h1 heading", `Page "${stepName}" has subheadings but no h1. Add an h1 as the main page heading.`, stepName, "Headings & Typography");
       if (h.hasH3 && !h.hasH2)
-        this.addFeedback("recommended", "Skipped heading level", `Page "${stepName}" uses h3 without h2. Use proper hierarchy: h1 → h2 → h3.`, stepName, "Headings & Typography");
+        this.addFeedback("recommended", "Fix skipped heading level", `Page "${stepName}" uses h3 without h2. Use proper hierarchy: h1 → h2 → h3.`, stepName, "Headings & Typography");
       if (h.hasH4 && !h.hasH3)
-        this.addFeedback("recommended", "Skipped heading level", `Page "${stepName}" uses h4 without h3. Use proper hierarchy: h1 → h2 → h3 → h4.`, stepName, "Headings & Typography");
+        this.addFeedback("recommended", "Fix skipped heading level", `Page "${stepName}" uses h4 without h3. Use proper hierarchy: h1 → h2 → h3 → h4.`, stepName, "Headings & Typography");
     });
   }
 
@@ -395,7 +395,7 @@ export class FormReviewer {
       for (const { pattern, suggestion } of verbosePatterns) {
         const match = cleanLabel.match(pattern);
         if (match) {
-          this.addFeedback("recommended", "Verbose label", `"${cleanLabel}" is too wordy. Simplify to: "${suggestion(match)}"`, `${widget.stepName} - ${widget.type}`, "Labels & Language");
+          this.addFeedback("recommended", "Simplify verbose label", `"${cleanLabel}" is too wordy. Simplify to: "${suggestion(match)}"`, `${widget.stepName} - ${widget.type}`, "Labels & Language");
           break;
         }
       }
@@ -421,14 +421,14 @@ export class FormReviewer {
         });
 
         if (unexplainedAcronyms.length > 0) {
-          this.addFeedback("recommended", "Unexplained acronym", `"${cleanLabel}" uses "${unexplainedAcronyms.join(", ")}". Write out the full term on first use, then use the acronym.`, `${widget.stepName} - ${widget.type}`, "Labels & Language");
+          this.addFeedback("recommended", "Define unexplained acronym", `"${cleanLabel}" uses "${unexplainedAcronyms.join(", ")}". Write out the full term on first use, then use the acronym.`, `${widget.stepName} - ${widget.type}`, "Labels & Language");
         }
       }
 
       const wordCount = cleanLabel.split(/\s+/).length;
       const longWords = cleanLabel.split(/\s+/).filter((w) => w.length > 12).length;
       if (wordCount > 20 && longWords > 3) {
-        this.addFeedback("consider", "Complex language", `"${cleanLabel}" may be too complex. Aim for 5th-8th grade reading level.`, `${widget.stepName} - ${widget.type}`, "Labels & Language");
+        this.addFeedback("consider", "Simplify complex language", `"${cleanLabel}" may be too complex. Aim for 5th-8th grade reading level.`, `${widget.stepName} - ${widget.type}`, "Labels & Language");
       }
     });
 
@@ -438,7 +438,7 @@ export class FormReviewer {
 
     if (settings && Object.keys(settings).length > 0) {
       if (!translationsEnabled) {
-        this.addFeedback("required", "Translations not enabled", "Enable machine translation in form settings for: Traditional Chinese (zh-CHT), Spanish (es), Vietnamese (vi), Filipino (fil)", null, "Labels & Language");
+        this.addFeedback("required", "Enable translations", "Enable machine translation in form settings for: Traditional Chinese (zh-CHT), Spanish (es), Vietnamese (vi), Filipino (fil)", null, "Labels & Language");
       } else {
         const requiredLanguages: Record<string, string> = { "zh-CHT": "Traditional Chinese", es: "Spanish", vi: "Vietnamese", fil: "Filipino" };
         const missingLanguages: string[] = [];
@@ -446,7 +446,7 @@ export class FormReviewer {
           if (!availableTranslations.includes(code)) missingLanguages.push(`${name} (${code})`);
         });
         if (missingLanguages.length > 0) {
-          this.addFeedback("required", "Missing required translations", `Add these languages to machine translation: ${missingLanguages.join(", ")}`, null, "Labels & Language");
+          this.addFeedback("required", "Add missing translations", `Add these languages to machine translation: ${missingLanguages.join(", ")}`, null, "Labels & Language");
         }
       }
     }
@@ -460,14 +460,14 @@ export class FormReviewer {
 
       const questionMarks = (cleanLabel.match(/\?/g) || []).length;
       if (questionMarks > 1) {
-        this.addFeedback("required", "Multiple questions", `"${cleanLabel}" asks multiple questions. Split into separate questions - one per field.`, `${widget.stepName} - ${widget.type}`, "Question Design");
+        this.addFeedback("required", "Split multiple questions", `"${cleanLabel}" asks multiple questions. Split into separate questions - one per field.`, `${widget.stepName} - ${widget.type}`, "Question Design");
       }
 
       if (cleanLabel.includes("?")) {
         const beforeQuestion = cleanLabel.substring(0, cleanLabel.indexOf("?"));
         const andCount = (beforeQuestion.toLowerCase().match(/ and /g) || []).length;
         if (andCount > 1 || /will you .+ and .+\?/i.test(cleanLabel) || /do you .+ and .+\?/i.test(cleanLabel)) {
-          this.addFeedback("required", "Possible double-barrelled question", `"${cleanLabel}" may ask multiple things. Split into separate questions.`, `${widget.stepName} - ${widget.type}`, "Question Design");
+          this.addFeedback("required", "Review possible double-barrelled question", `"${cleanLabel}" may ask multiple things. Split into separate questions.`, `${widget.stepName} - ${widget.type}`, "Question Design");
         }
       }
 
@@ -483,7 +483,7 @@ export class FormReviewer {
 
       const isPersonalQuestion = /social security|ssn|income|salary|medical|health condition|disability|criminal|arrest/i.test(cleanLabel);
       if (isPersonalQuestion && widget.position?.row < 5) {
-        this.addFeedback("consider", "Personal question placement", `"${cleanLabel}" asks for sensitive information early in the form. Consider moving personal questions later.`, `${widget.stepName} - ${widget.type}`, "Question Design");
+        this.addFeedback("consider", "Move personal question(s) to later in the form", `"${cleanLabel}" asks for sensitive information early in the form. Consider moving personal questions later.`, `${widget.stepName} - ${widget.type}`, "Question Design");
       }
     });
   }
@@ -519,7 +519,7 @@ export class FormReviewer {
       }
 
       if (widget.type === "Captcha") {
-        this.addFeedback("required", "reCAPTCHA detected", "Remove reCAPTCHA. It creates accessibility barriers and is not allowed in sf.gov forms.", `${widget.stepName} - ${widget.type}`, "Input Types");
+        this.addFeedback("required", "Remove reCAPTCHA", "Remove reCAPTCHA. It creates accessibility barriers and is not allowed in sf.gov forms.", `${widget.stepName} - ${widget.type}`, "Input Types");
       }
 
       if (widget.type === "ShortAnswer" || widget.type === "LongAnswer") {
@@ -537,32 +537,28 @@ export class FormReviewer {
       const placeholder = widget.template?.placeholder?.logic?.value || "";
 
       if (placeholder.length > 30 && !["MM/DD/YYYY", "example@email.com"].includes(placeholder)) {
-        this.addFeedback("required", "Help text in placeholder", `"${cleanLabel}" has help text in placeholder field. Move this to the caption field below the question.`, `${widget.stepName} - ${widget.type}`, "Help Text & Errors");
+        this.addFeedback("required", "Move help text from placeholder", `"${cleanLabel}" has help text in placeholder field. Move this to the caption field below the question.`, `${widget.stepName} - ${widget.type}`, "Help Text & Errors");
       }
 
       const isRequired = widget.template?.required?.logic === true;
       const errorMessage = widget.template?.validationErrorMessage?.logic?.value || "";
 
-      if (isRequired && (!errorMessage || errorMessage === "This field is required")) {
-        this.addFeedback("consider", "Generic error message", `"${cleanLabel}" uses generic error message. Write a specific message like: "${cleanLabel} is required"`, `${widget.stepName} - ${widget.type}`, "Help Text & Errors");
-      }
-
       if (widget.template?.validationPattern && widget.template.validationPattern !== "none") {
         if (!errorMessage || errorMessage.length < 10) {
-          this.addFeedback("consider", "Missing validation error message", `"${cleanLabel}" has validation but no clear error message. Explain what format is expected.`, `${widget.stepName} - ${widget.type}`, "Help Text & Errors");
+          this.addFeedback("consider", "Add validation error message", `"${cleanLabel}" has validation but no clear error message. Explain what format is expected.`, `${widget.stepName} - ${widget.type}`, "Help Text & Errors");
         }
       }
 
       const caption = widget.template?.caption?.logic?.value || "";
       const captionText = this.stripHtml(caption);
       if (captionText.length > 250) {
-        this.addFeedback("consider", "Long caption text", `Caption text is ${captionText.length} characters. Use a separate Paragraph field above the question for better readability.`, `${widget.stepName} - ${widget.type}`, "Help Text & Errors");
+        this.addFeedback("consider", "Shorten caption text or use a paragraph field for this information", `Caption text is ${captionText.length} characters. Use a separate Paragraph field above the question for better readability.`, `${widget.stepName} - ${widget.type}`, "Help Text & Errors");
       }
 
       if (cleanLabel.includes("(") && cleanLabel.includes(")")) {
         const parentheticalText = cleanLabel.match(/\(([^)]+)\)/);
         if (parentheticalText && parentheticalText[1].length > 20) {
-          this.addFeedback("consider", "Help text in label", `"${cleanLabel}" includes help text in parentheses. Move "${parentheticalText[1]}" to the caption field.`, `${widget.stepName} - ${widget.type}`, "Help Text & Errors");
+          this.addFeedback("consider", "Move help text from label", `"${cleanLabel}" includes help text in parentheses. Move "${parentheticalText[1]}" to the caption field.`, `${widget.stepName} - ${widget.type}`, "Help Text & Errors");
         }
       }
     });
