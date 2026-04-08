@@ -253,10 +253,26 @@ export class FormReviewer {
       // Use the template's firstStep to find the actual first page
       const firstStepId = form.template?.firstStep;
       const firstStep: any = firstStepId ? this.steps[firstStepId] : formSteps[0];
-      const firstStepWidgets = Object.values(firstStep?.template?.widgets || {}) as any[];
-      const hasIntroText = firstStepWidgets.some(
-        (w) => (w.type === "Paragraph" || w.type === "Text") && this.getLabel(w).length > 100
-      );
+
+      // Check the first two pages for intro content — some forms have a short cover
+      // page followed by a more detailed intro page
+      const firstTwoSteps = [firstStep];
+      const firstStepNext = firstStep?.nextStep?.defaultNextStep;
+      if (firstStepNext && this.steps[firstStepNext]) {
+        firstTwoSteps.push(this.steps[firstStepNext]);
+      }
+
+      const hasIntroText = firstTwoSteps.some((step: any) => {
+        const stepWidgets = Object.values(step?.template?.widgets || {}) as any[];
+        const inputCount = stepWidgets.filter(
+          (w) => !["Text", "Paragraph", "Divider", "Button", "Alert"].includes(w.type)
+        ).length;
+        const textLength = stepWidgets
+          .filter((w) => w.type === "Paragraph" || w.type === "Text")
+          .reduce((sum, w) => sum + this.getLabel(w).length, 0);
+        // Intro page: has substantial text and few or no input fields
+        return textLength > 100 && inputCount <= 2;
+      });
 
       if (!hasIntroText) {
         this.addFeedback(
