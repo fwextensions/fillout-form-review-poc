@@ -197,8 +197,7 @@ export class FormReviewer {
 
       if (
         (label.includes("<strong>") || label.includes("<b>")) &&
-        widget.type !== "Text" &&
-        widget.type !== "Paragraph"
+        !["Text", "Paragraph", "Alert"].includes(widget.type)
       ) {
         if (cleanLabel.length > 0) {
           this.addFeedback(
