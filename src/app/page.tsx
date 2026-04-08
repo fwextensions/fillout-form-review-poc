@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { FormReviewer, FeedbackItem } from "@/lib/form-reviewer";
+import { FormReviewer, FeedbackItem, ALL_CRITERIA } from "@/lib/form-reviewer";
 
 const severityColors: Record<string, { border: string; badge: string; badgeText: string }> = {
   required: { border: "border-red-500", badge: "bg-red-500", badgeText: "text-white" },
@@ -113,9 +113,15 @@ export default function Home() {
     }
   }, [feedback]);
 
-  const critical = feedback?.filter((f) => f.severity === "required") ?? [];
-  const warnings = feedback?.filter((f) => f.severity === "recommended") ?? [];
-  const info = feedback?.filter((f) => f.severity === "consider") ?? [];
+  const required = feedback?.filter((f) => f.severity === "required") ?? [];
+  const recommended = feedback?.filter((f) => f.severity === "recommended") ?? [];
+  const consider = feedback?.filter((f) => f.severity === "consider") ?? [];
+
+  // Count criteria that passed (no feedback items for that criteria)
+  const failedCriteria = feedback
+    ? new Set(feedback.map((f) => f.criteria))
+    : new Set<string>();
+  const passedCount = ALL_CRITERIA.filter((c) => !failedCriteria.has(c)).length;
 
   const categoryOrder = [
     "Theme & Visual Design",
@@ -206,29 +212,29 @@ export default function Home() {
             {/* Summary */}
             <div className="bg-gray-50 rounded p-4 mb-6">
               <p className="text-lg font-semibold mb-3">
-                {critical.length > 0
+                {required.length > 0
                   ? "This form has required fixes that must be addressed before publishing."
-                  : warnings.length > 5
+                  : recommended.length > 5
                     ? "This form needs several improvements to meet sf.gov standards."
-                    : warnings.length > 0
+                    : recommended.length > 0
                       ? "This form is close to meeting standards with a few improvements needed."
                       : "Great work! This form follows sf.gov standards well."}
               </p>
               <div className="flex gap-6 text-sm">
                 <div>
                   <span className="text-2xl font-bold text-green-600">
-                    {feedback.length - critical.length - warnings.length}
+                    {passedCount}
                   </span>{" "}
                   passed
                 </div>
                 <div>
-                  <span className="text-2xl font-bold text-red-500">{critical.length}</span> required
+                  <span className="text-2xl font-bold text-red-500">{required.length}</span> required
                 </div>
                 <div>
-                  <span className="text-2xl font-bold text-yellow-500">{warnings.length}</span> recommended
+                  <span className="text-2xl font-bold text-yellow-500">{recommended.length}</span> recommended
                 </div>
                 <div>
-                  <span className="text-2xl font-bold text-blue-500">{info.length}</span> consider
+                  <span className="text-2xl font-bold text-blue-500">{consider.length}</span> consider
                 </div>
               </div>
             </div>

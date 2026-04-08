@@ -56,6 +56,8 @@ export async function POST(req: NextRequest) {
     // The template lives directly at pageProps.flowSnapshot.template
     const template = pageProps.flowSnapshot?.template ?? null;
     const formName = pageProps.flow?.name || pageProps.flowSnapshot?.name || "Untitled Form";
+    // Merge flow-level settings into template settings so the reviewer can access them
+    const flowSettings = pageProps.flow?.settings ?? {};
 
     if (!template) {
       return NextResponse.json(
@@ -65,6 +67,11 @@ export async function POST(req: NextRequest) {
         },
         { status: 422 }
       );
+    }
+
+    // Inject flow-level settings into the template so the reviewer picks them up
+    if (flowSettings && Object.keys(flowSettings).length > 0) {
+      template.settings = { ...flowSettings, ...template.settings };
     }
 
     return NextResponse.json({ template, formName });
