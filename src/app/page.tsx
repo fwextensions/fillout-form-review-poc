@@ -17,6 +17,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [viewMode, setViewMode] = useState<"category" | "severity">("category");
   const reviewerRef = useRef(new FormReviewer());
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -154,8 +155,35 @@ export default function Home() {
         .filter(Boolean) as { category: string; titleGroups: [string, FeedbackItem[]][] }[]
     : [];
 
+  // Group by severity, then by title within each severity
+  const severityLabels: Record<string, string> = {
+    required: "Required",
+    recommended: "Recommended",
+    consider: "Consider",
+  };
+  const groupedBySeverity = feedback
+    ? (["required", "recommended", "consider"] as const)
+        .map((severity) => {
+          const items = feedback.filter((f) => f.severity === severity);
+          if (items.length === 0) return null;
+
+          const titleGroups = Object.entries(
+            items.reduce<Record<string, FeedbackItem[]>>((acc, item) => {
+              (acc[item.title] ??= []).push(item);
+              return acc;
+            }, {})
+          );
+
+          return { severity, label: severityLabels[severity], titleGroups };
+        })
+        .filter(Boolean) as { severity: string; label: string; titleGroups: [string, FeedbackItem[]][] }[]
+    : [];
+
   return (
     <div className="min-h-screen bg-gray-50 font-[family-name:var(--font-public-sans),system-ui,sans-serif]">
+      <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-2 text-center text-sm text-yellow-800">
+        This is an experimental prototype provided by Digital Services.
+      </div>
       <div className="max-w-4xl mx-auto px-4 py-8">
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-1">Form review tool</h1>
@@ -239,19 +267,61 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Grouped feedback by category */}
-            <div className="space-y-6">
-              {groupedByCategory.map(({ category, titleGroups }) => (
-                <div key={category}>
-                  <h3 className="text-sm font-semibold text-gray-500 tracking-wide mb-3">{category}</h3>
-                  <div className="space-y-4">
-                    {titleGroups.map(([title, items]) => (
-                      <FeedbackGroup key={title} title={title} items={items} onRate={handleRate} />
-                    ))}
-                  </div>
-                </div>
-              ))}
+            {/* View toggle */}
+            <div className="flex gap-1 mb-6 bg-gray-100 rounded p-1 w-fit">
+              <button
+                onClick={() => setViewMode("category")}
+                className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${
+                  viewMode === "category"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                By category
+              </button>
+              <button
+                onClick={() => setViewMode("severity")}
+                className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${
+                  viewMode === "severity"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                By severity
+              </button>
             </div>
+
+            {/* Grouped feedback by category */}
+            {viewMode === "category" && (
+              <div className="space-y-6">
+                {groupedByCategory.map(({ category, titleGroups }) => (
+                  <div key={category}>
+                    <h3 className="text-sm font-semibold text-gray-500 tracking-wide mb-3">{category}</h3>
+                    <div className="space-y-4">
+                      {titleGroups.map(([title, items]) => (
+                        <FeedbackGroup key={title} title={title} items={items} onRate={handleRate} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Grouped feedback by severity */}
+            {viewMode === "severity" && (
+              <div className="space-y-6">
+                {groupedBySeverity.map(({ severity, label, titleGroups }) => (
+                  <div key={severity}>
+                    <h3 className="text-sm font-semibold text-gray-500 tracking-wide mb-3">{label}</h3>
+                    <div className="space-y-4">
+                      {titleGroups.map(([title, items]) => (
+                        <FeedbackGroup key={title} title={title} items={items} onRate={handleRate} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Submit feedback */}
             <div className="mt-6 pt-6 border-t border-gray-200">
